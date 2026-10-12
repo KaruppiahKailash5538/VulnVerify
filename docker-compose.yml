@@ -1,0 +1,41 @@
+services:
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: sqlite:////data/vulnverify.sqlite3
+      VULNVERIFY_DB: /data/vulnverify.sqlite3
+      REDIS_URL: redis://redis:6379/0
+      PUBLIC_BASE_URL: http://10.56.49.92:8000
+      ALLOWED_ORIGINS: http://10.56.49.92:5173,http://10.56.49.92:8080,http://localhost:5173,http://127.0.0.1:5173,http://localhost:8080,http://127.0.0.1:8080
+    ports:
+      - "8000:8000"
+    volumes:
+      - vulnverify_data:/data
+    depends_on:
+      - redis
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    environment:
+      API_BASE_URL: http://api:8000
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  vulnverify_data:
+  redis_data:
